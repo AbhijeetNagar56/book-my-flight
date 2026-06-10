@@ -1,0 +1,25 @@
+Health
+────────────────────────────
+GET  /api
+GET  /api/db
+
+Auth
+────────────────────────────
+POST /api/auth/signup
+POST /api/auth/login
+GET  /api/auth/profile
+
+Flights
+────────────────────────────
+GET  /api/flights
+GET  /api/flights/:id
+
+Seats
+────────────────────────────
+GET  /api/flights/:id/seats
+
+Bookings
+────────────────────────────
+POST   /api/bookings
+GET    /api/bookings/me
+DELETE /api/bookings/:id
