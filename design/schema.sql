@@ -47,3 +47,8 @@ CREATE TABLE IF NOT EXISTS bookings (
     booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(20) DEFAULT 'confirmed'
 );
+
+
+ALTER TABLE bookings
+ADD CONSTRAINT unique_seat_booking
+UNIQUE(seat_id);
