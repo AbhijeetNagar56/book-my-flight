@@ -10,8 +10,8 @@ function App() {
     <>
       <Toaster position="top-right" />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/auth" element={<Auth />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<Auth />} />
         <Route path="/profile" element={<Profile />} />
       </Routes>
     </>
