@@ -1,0 +1,3 @@
+search includes only the airport present in the db.
+flight cannot be booked after day or time 5hrs before departure.
+do not show flight layout just the seats available(number or count) in each category.
