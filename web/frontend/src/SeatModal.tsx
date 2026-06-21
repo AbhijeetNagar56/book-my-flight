@@ -3,12 +3,12 @@ import api from "./Api";
 import toast from "react-hot-toast";
 import { X } from "lucide-react";
 
-interface Seat {
+interface SeatCategory {
     _id: string;
-    seat_no: string;
     seat_class: 'economy' | 'premium_economy' | 'business' | 'first_class';
     price: number;
-    is_booked: boolean;
+    available_count: number;
+    status: 'available' | 'sold_out';
 }
 
 interface SeatModalProps {
@@ -17,18 +17,17 @@ interface SeatModalProps {
 }
 
 export default function SeatModal({ flightId, onClose }: SeatModalProps) {
-    const [seats, setSeats] = useState<Seat[]>([]);
-    const [selectedSeat, setSelectedSeat] = useState<Seat | null>(null);
+    const [seatCategories, setSeatCategories] = useState<SeatCategory[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState<SeatCategory | null>(null);
     const [loading, setLoading] = useState(true);
     const [bookingLoading, setBookingLoading] = useState(false);
 
-    // Fetch embedded flight seats
     useEffect(() => {
         const fetchSeats = async () => {
             try {
                 setLoading(true);
                 const res = await api.get(`/airport/flights/${flightId}/seats`);
-                setSeats(res.data.seats);
+                setSeatCategories(res.data.seats);
             } catch (err: any) {
                 toast.error(err.response?.data?.msg || "Could not load seats");
                 onClose();
@@ -39,19 +38,18 @@ export default function SeatModal({ flightId, onClose }: SeatModalProps) {
         fetchSeats();
     }, [flightId, onClose]);
 
-    // Handle book event
     const handleBookSeat = async () => {
-        if (!selectedSeat) return;
+        if (!selectedCategory) return;
         
         try {
             setBookingLoading(true);
             const res = await api.post("/user/bookings", {
                 flight_id: flightId,
-                seat_no: selectedSeat.seat_no
+                seat_class: selectedCategory.seat_class
             });
 
             if (res.data.success) {
-                toast.success(`Seat ${selectedSeat.seat_no} confirmed!`);
+                toast.success(`Your ${selectedCategory.seat_class.replace('_', ' ')} seat is confirmed!`);
                 onClose();
             }
         } catch (err: any) {
@@ -78,50 +76,49 @@ export default function SeatModal({ flightId, onClose }: SeatModalProps) {
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        <div className="bg-base-300 p-4 rounded-xl max-h-96 overflow-y-auto">
-                            <div className="space-y-3">
-                                {seats.map((seat) => (
-                                    <div
-                                        key={seat._id}
-                                        className="flex flex-col gap-2 p-3 rounded-xl border border-base-300 bg-base-100"
-                                    >
-                                        <div className="flex items-center justify-between gap-3">
-                                            <div>
-                                                <p className="font-semibold">Seat {seat.seat_no}</p>
-                                                <p className="text-xs text-base-content/70 capitalize">{seat.seat_class.replace('_', ' ')}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className={`text-sm font-semibold ${seat.is_booked ? 'text-error' : 'text-success'}`}>
-                                                    {seat.is_booked ? 'Booked' : 'Available'}
-                                                </p>
-                                                {!seat.is_booked && (
-                                                    <p className="text-sm font-black text-secondary">${seat.price}</p>
-                                                )}
-                                            </div>
+                        <div className="grid gap-4">
+                            {seatCategories.map((category) => (
+                                <div
+                                    key={category._id}
+                                    className="flex flex-col gap-3 p-4 rounded-xl border border-base-300 bg-base-100"
+                                >
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div>
+                                            <p className="font-semibold capitalize">{category.seat_class.replace('_', ' ')}</p>
+                                            <p className="text-sm text-base-content/70">{category.available_count} seats available</p>
                                         </div>
-                                        <button
-                                            type="button"
-                                            disabled={seat.is_booked}
-                                            onClick={() => setSelectedSeat(seat)}
-                                            className={`btn btn-sm ${seat.is_booked ? 'btn-disabled' : 'btn-primary'}`}
-                                        >
-                                            {seat.is_booked ? 'Unavailable' : 'Select Seat'}
-                                        </button>
+                                        <div className="text-right">
+                                            <p className={`text-sm font-semibold ${category.status === 'available' ? 'text-success' : 'text-error'}`}>
+                                                {category.status === 'available' ? 'Available' : 'Sold out'}
+                                            </p>
+                                            <p className="text-sm font-black text-secondary">${category.price}</p>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
+                                    <button
+                                        type="button"
+                                        disabled={category.available_count === 0}
+                                        onClick={() => setSelectedCategory(category)}
+                                        className={`btn btn-sm ${category.available_count === 0 ? 'btn-disabled' : 'btn-primary'}`}
+                                    >
+                                        {category.available_count === 0 ? 'Unavailable' : 'Book this Class'}
+                                    </button>
+                                </div>
+                            ))}
                         </div>
 
-                        {selectedSeat && (
+                        {selectedCategory && (
                             <div className="bg-base-100 p-4 rounded-xl flex flex-col gap-4 border border-base-300">
                                 <div>
-                                    <p className="text-sm text-base-content/60">Selected Seat</p>
-                                    <h4 className="text-lg font-bold">
-                                        {selectedSeat.seat_no} <span className="text-sm font-normal capitalize text-primary">({selectedSeat.seat_class.replace('_', ' ')})</span>
+                                    <p className="text-sm text-base-content/60">Ticket Category</p>
+                                    <h4 className="text-lg font-bold capitalize">
+                                        {selectedCategory.seat_class.replace('_', ' ')}
                                     </h4>
-                                    <p className="text-xl font-black text-secondary">${selectedSeat.price}</p>
+                                    <p className="text-xl font-black text-secondary">${selectedCategory.price}</p>
+                                    <p className="text-sm text-base-content/70">
+                                        {selectedCategory.available_count} seats remaining in this class
+                                    </p>
                                 </div>
-                                <button 
+                                <button
                                     className="btn btn-secondary"
                                     onClick={handleBookSeat}
                                     disabled={bookingLoading}

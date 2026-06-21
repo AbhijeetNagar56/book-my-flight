@@ -44,15 +44,17 @@ export async function seatAvailability (req, res) {
             return res.status(404).json({ success: false, msg: "Flight not found" });
         }
 
-        // Return all seats so frontend can render availability and price information.
-        const seats = flight.seats.map((seat) => ({
-            _id: seat._id,
-            seat_no: seat.seat_no,
-            seat_class: seat.seat_class,
-            price: seat.price,
-            is_booked: seat.is_booked,
-            status: seat.is_booked ? 'booked' : 'available'
-        }));
+        const seatClasses = ['economy', 'premium_economy', 'business', 'first_class'];
+        const seats = seatClasses.map((seat_class) => {
+            const classSeats = flight.seats.filter((seat) => seat.seat_class === seat_class);
+            const availableSeats = classSeats.filter((seat) => !seat.is_booked);
+            return {
+                seat_class,
+                price: classSeats[0]?.price ?? 0,
+                available_count: availableSeats.length,
+                status: availableSeats.length > 0 ? 'available' : 'sold_out'
+            };
+        });
 
         res.status(200).json({ success: true, seats });
     } catch (err) {

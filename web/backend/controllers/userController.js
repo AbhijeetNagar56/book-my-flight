@@ -21,35 +21,28 @@ export async function bookSeat (req, res) {
 
     try {
         const userId = req.user.id;
-        const { flight_id, seat_no } = req.body; // Using seat_no string from the embedded layout
+        const { flight_id, seat_class } = req.body;
 
-        // Find flight and locate target sub-document seat inside it
+        // Find flight and locate the first available seat inside the requested class
         const flight = await Flight.findById(flight_id).session(session);
         if (!flight) {
             await session.abortTransaction();
             return res.status(404).json({ success: false, msg: "Flight not found" });
         }
 
-        const seat = flight.seats.find(s => s.seat_no === seat_no);
+        const seat = flight.seats.find((s) => s.seat_class === seat_class && !s.is_booked);
         if (!seat) {
             await session.abortTransaction();
-            return res.status(404).json({ success: false, msg: "Seat not found" });
+            return res.status(400).json({ success: false, msg: `No available seats in ${seat_class.replace('_', ' ')}` });
         }
 
-        if (seat.is_booked) {
-            await session.abortTransaction();
-            return res.status(400).json({ success: false, msg: "Seat already booked" });
-        }
-
-        // Atomically flag structural seat object as true inside the array
         seat.is_booked = true;
         await flight.save({ session });
 
-        // Generate tracking manifest entry
         const booking = await Booking.create([{
             user_id: userId,
             flight_id,
-            seat_no
+            seat_no: seat.seat_no
         }], { session });
 
         await session.commitTransaction();
@@ -96,13 +89,18 @@ export async function cancelBooking (req, res) {
             return res.status(404).json({ success: false, msg: "Booking not found" });
         }
 
-        // Revert booking status back to unreserved false within matching Flight record
+        if (booking.status === 'cancelled') {
+            await session.abortTransaction();
+            return res.status(400).json({ success: false, msg: "Booking already cancelled" });
+        }
+
         await Flight.updateOne(
             { _id: booking.flight_id, "seats.seat_no": booking.seat_no },
             { $set: { "seats.$.is_booked": false } }
         ).session(session);
 
-        await booking.deleteOne({ session });
+        booking.status = 'cancelled';
+        await booking.save({ session });
 
         await session.commitTransaction();
         res.status(200).json({ success: true, msg: "Booking cancelled" });
