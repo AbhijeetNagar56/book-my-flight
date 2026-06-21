@@ -31,7 +31,7 @@ export default function Home() {
 
         try {
             setLoading(true);
-            const res = await api.get("/flights", {
+            const res = await api.get("/airport/flights", {
                 params: { src, dst, date }
             });
 

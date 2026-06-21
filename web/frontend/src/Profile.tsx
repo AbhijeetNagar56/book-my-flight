@@ -10,7 +10,7 @@ import {
     ArrowLeft
 } from "lucide-react";
 
-// import { useNavigate } from 'react-router';
+import { Link } from 'react-router';
 
 // Explicit TypeScript interface declarations for safety
 interface UserProfile {
@@ -56,7 +56,7 @@ export default function Profile() {
 
     const loadProfile = async () => {
         try {
-            const res = await api.get("/auth/profile");
+            const res = await api.get("/user/profile");
             
             // FIX: If res.data.user is null, fallback to an empty object structure
             setUser(res.data.user || {
@@ -73,7 +73,7 @@ export default function Profile() {
 
     const loadBookings = async () => {
         try {
-            const res = await api.get("/bookings/me");
+            const res = await api.get("/user/bookings/me");
             setBookings(res.data.bookings);
         } catch {
             toast.error("Unable to load bookings");
@@ -84,7 +84,7 @@ export default function Profile() {
         try {
             // Note: If you add an implementation for PUT '/auth/profile' on your backend later, 
             // this matches the payload structure perfectly.
-            await api.put("/auth/profile", {
+            await api.put("/user/profile", {
                 username: user.username,
                 mobile: user.mobile
             });
@@ -96,7 +96,7 @@ export default function Profile() {
 
     const cancelBooking = async (bookingId: string) => {
         try {
-            await api.delete(`/bookings/${bookingId}`);
+            await api.delete(`/user/bookings/${bookingId}`);
             toast.success("Booking cancelled");
             loadBookings(); // Hot-reload active reservations list
         } catch (err: any) {
@@ -117,7 +117,7 @@ export default function Profile() {
     return (
         <div className="max-w-6xl mx-auto p-6">
             
-            <h1 className="text-4xl font-bold mb-6"><ArrowLeft className="inline mr-5" onClick={() => {  }} /> My Profile</h1>
+            <h1 className="text-4xl font-bold mb-6"><Link to="/home"><ArrowLeft className="inline mr-5" /></Link> My Profile</h1>
 
             <div className="grid lg:grid-cols-3 gap-6">
                 {/* Profile Card */}

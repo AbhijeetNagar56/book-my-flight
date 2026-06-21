@@ -27,7 +27,7 @@ export default function SeatModal({ flightId, onClose }: SeatModalProps) {
         const fetchSeats = async () => {
             try {
                 setLoading(true);
-                const res = await api.get(`/flights/${flightId}/seats`);
+                const res = await api.get(`/airport/flights/${flightId}/seats`);
                 setSeats(res.data.seats);
             } catch (err: any) {
                 toast.error(err.response?.data?.msg || "Could not load seats");
@@ -45,9 +45,9 @@ export default function SeatModal({ flightId, onClose }: SeatModalProps) {
         
         try {
             setBookingLoading(true);
-            const res = await api.post("/bookings", {
+            const res = await api.post("/user/bookings", {
                 flight_id: flightId,
-                seat_no: selectedSeat.seat_no // Backend matches via seat_no string literal
+                seat_no: selectedSeat.seat_no
             });
 
             if (res.data.success) {
@@ -66,7 +66,7 @@ export default function SeatModal({ flightId, onClose }: SeatModalProps) {
         <div className="modal modal-open">
             <div className="modal-box max-w-2xl bg-base-200 border border-base-300">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-xl">Select Your Seat</h3>
+                    <h3 className="font-bold text-xl">Seat Availability</h3>
                     <button className="btn btn-sm btn-circle btn-ghost" onClick={onClose}>
                         <X size={20} />
                     </button>
@@ -78,46 +78,55 @@ export default function SeatModal({ flightId, onClose }: SeatModalProps) {
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        {/* Interactive Seat Map Matrix Layout wrapper */}
-                        <div className="bg-base-300 p-4 rounded-xl max-h-64 overflow-y-auto">
-                            <p className="text-xs text-center uppercase tracking-widest text-base-content/40 mb-4">Front of Aircraft</p>
-                            <div className="grid grid-cols-4 gap-3 justify-items-center">
+                        <div className="bg-base-300 p-4 rounded-xl max-h-96 overflow-y-auto">
+                            <div className="space-y-3">
                                 {seats.map((seat) => (
-                                    <button
+                                    <div
                                         key={seat._id}
-                                        disabled={seat.is_booked}
-                                        onClick={() => setSelectedSeat(seat)}
-                                        className={`btn btn-md w-14 h-12 flex flex-col p-1 text-xs ${
-                                            seat.is_booked 
-                                                ? "btn-disabled bg-base-100" 
-                                                : selectedSeat?.seat_no === seat.seat_no 
-                                                    ? "btn-primary" 
-                                                    : "btn-outline"
-                                        }`}
+                                        className="flex flex-col gap-2 p-3 rounded-xl border border-base-300 bg-base-100"
                                     >
-                                        <span className="font-bold">{seat.seat_no}</span>
-                                        <span className="text-[9px] opacity-70">${seat.price}</span>
-                                    </button>
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div>
+                                                <p className="font-semibold">Seat {seat.seat_no}</p>
+                                                <p className="text-xs text-base-content/70 capitalize">{seat.seat_class.replace('_', ' ')}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className={`text-sm font-semibold ${seat.is_booked ? 'text-error' : 'text-success'}`}>
+                                                    {seat.is_booked ? 'Booked' : 'Available'}
+                                                </p>
+                                                {!seat.is_booked && (
+                                                    <p className="text-sm font-black text-secondary">${seat.price}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            disabled={seat.is_booked}
+                                            onClick={() => setSelectedSeat(seat)}
+                                            className={`btn btn-sm ${seat.is_booked ? 'btn-disabled' : 'btn-primary'}`}
+                                        >
+                                            {seat.is_booked ? 'Unavailable' : 'Select Seat'}
+                                        </button>
+                                    </div>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Booking Details Window Footer */}
                         {selectedSeat && (
-                            <div className="bg-base-100 p-4 rounded-xl flex items-center justify-between border border-base-300">
+                            <div className="bg-base-100 p-4 rounded-xl flex flex-col gap-4 border border-base-300">
                                 <div>
-                                    <p className="text-sm text-base-content/60">Selected Unit Details</p>
+                                    <p className="text-sm text-base-content/60">Selected Seat</p>
                                     <h4 className="text-lg font-bold">
-                                        Seat {selectedSeat.seat_no} <span className="text-sm font-normal capitalize text-primary">({selectedSeat.seat_class.replace('_', ' ')})</span>
+                                        {selectedSeat.seat_no} <span className="text-sm font-normal capitalize text-primary">({selectedSeat.seat_class.replace('_', ' ')})</span>
                                     </h4>
                                     <p className="text-xl font-black text-secondary">${selectedSeat.price}</p>
                                 </div>
                                 <button 
-                                    className="btn btn-secondary" 
+                                    className="btn btn-secondary"
                                     onClick={handleBookSeat}
                                     disabled={bookingLoading}
                                 >
-                                    {bookingLoading ? "Processing..." : "Confirm Flight Booking"}
+                                    {bookingLoading ? "Processing..." : "Confirm Booking"}
                                 </button>
                             </div>
                         )}
