@@ -112,6 +112,15 @@ export default function Profile() {
         );
     }
 
+    const handleLogout = async () => {
+        try {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        } catch(e) {
+            console.log("Error: ", e);
+        }
+    }
+
     
 
     return (
@@ -172,6 +181,9 @@ export default function Profile() {
 
                             <button onClick={saveProfile} className="btn btn-primary mt-6">
                                 Save Changes
+                            </button>
+                            <button onClick={ handleLogout} className="btn btn-secondary">
+                                Logout
                             </button>
                         </div>
                     </div>
