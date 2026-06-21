@@ -24,9 +24,20 @@ export default function Home() {
     const [flights, setFlights] = useState<Flight[]>([]);
     const [loading, setLoading] = useState(false);
 
+    const getTomorrowDate = () => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return tomorrow.toISOString().slice(0, 10);
+    };
+
     const searchFlights = async () => {
         if (!src || !dst || !date) {
             return toast.error("Please fill in all search parameters");
+        }
+
+        const minDate = getTomorrowDate();
+        if (date < minDate) {
+            return toast.error("Please select a future date at least one day from today");
         }
 
         try {
@@ -35,10 +46,15 @@ export default function Home() {
                 params: { src, dst, date }
             });
 
-            setFlights(res.data.flights);
+            const earliestDeparture = new Date(Date.now() + 5 * 60 * 60 * 1000);
+            const validFlights = res.data.flights.filter((flight: Flight) => {
+                return new Date(flight.departure_time) > earliestDeparture;
+            });
 
-            if (res.data.flights.length === 0) {
-                toast("No flights found for this date");
+            setFlights(validFlights);
+
+            if (validFlights.length === 0) {
+                toast("No flights available after the 5-hour booking cutoff");
             }
         } catch (err) {
             console.error(err);
@@ -85,6 +101,7 @@ export default function Home() {
                                 <input
                                     type="date"
                                     className="grow"
+                                    min={getTomorrowDate()}
                                     value={date}
                                     onChange={(e) => setDate(e.target.value)}
                                 />
