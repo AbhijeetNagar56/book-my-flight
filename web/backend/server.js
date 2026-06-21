@@ -13,11 +13,11 @@ dotenv.config();
 connectDB();
 
 const app = express();
-const port = process.env.PORT || 6789;
+const port = process.env.PORT || 5000;
 
 // middleware
 app.use(cors({
-    origin: "*"
+    origin: process.env.FRONTEND_URL
 }));
 app.use(express.json());
 
