@@ -1,0 +1,23 @@
+version: "3.9"
+
+networks:
+  book-my-flight:
+
+services:
+  backend:
+    container_name: bmf-backend
+    image: ghcr.io/abhijeetnagar56/bmf-backend:latest
+    environment:
+      MONGO_URI: 
+      JWT_SECRET: abc123$%I
+      FRONTEND_URL: http://localhost:8080
+    ports:
+      - "5000:5000"
+    
+  frontend:
+    container_name: bmf-frontend
+    image: ghcr.io/abhijeetnagar56/bmf-frontend:latest
+    environment:
+      VITE_API_BASE_URL: http://localhost:5000
+    ports:
+      - "8080:80"
