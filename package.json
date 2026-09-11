@@ -1,0 +1,26 @@
+{
+  "name": "book-my-flight",
+  "version": "1.0.0",
+  "description": "flight ticket booking app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend",
+    "start": "npm start --prefix backend"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AbhijeetNagar56/book-my-flight.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/AbhijeetNagar56/book-my-flight/issues"
+  },
+  "homepage": "https://github.com/AbhijeetNagar56/book-my-flight#readme",
+  "dependencies": {
+    "express": "^4.22.2"
+  }
+}
