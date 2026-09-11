@@ -42,7 +42,13 @@ jobs:
             ghcr.io/abhijeetnagar56/book-my-flight:latest
             ghcr.io/abhijeetnagar56/book-my-flight:${{ github.sha }}
 
-
+  deploy:
+    runs-on: ubuntu-latest
+    needs: app
+    steps:
+      - name: Trigger Render Redeploy
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_WEBHOOK_URL }}"
 
 
 
